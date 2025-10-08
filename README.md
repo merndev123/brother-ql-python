@@ -37,6 +37,17 @@ Deployment notes and caveats
 
 - Railway: add the repo, set the start command to `uvicorn app:app --host 0.0.0.0 --port $PORT` and set the `PRINTER` env var in the Railway dashboard. A `Procfile` is provided.
 
+- Railway quick steps:
+
+  1. Push this repo to GitHub and create a new Railway project from the repo.
+  2. In Railway's Service settings set the start command (or rely on `Procfile`):
+	  `uvicorn app:app --host 0.0.0.0 --port $PORT`
+  3. Add the following environment variables in Railway's dashboard:
+	  - `PRINTER` = `tcp://<printer-ip>:9100`
+	  - (optional) `API_KEY` = a strong secret to protect the /print endpoint
+	  - (optional) `MODEL` and `LABEL` if you want non-default values
+  4. Deploy. Use the generated service URL and include the `x-api-key` header when calling POST /print if you set `API_KEY`.
+
 - Render: a sample `render.yaml` is included. Deploy it or create a new Web Service, set env vars (PRINTER, MODEL, LABEL), and use the start command above.
 
 Important network constraints

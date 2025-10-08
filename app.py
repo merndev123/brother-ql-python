@@ -2,7 +2,7 @@ import os
 import io
 import logging
 from typing import Optional
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request, Depends
 from pydantic import BaseModel
 from PIL import Image, ImageDraw, ImageFont
 from brother_ql.raster import BrotherQLRaster
@@ -16,6 +16,7 @@ app = FastAPI(title="Brother QL Label Printer")
 
 # Configuration via environment variables
 PRINTER = os.environ.get("PRINTER")  # e.g. tcp://192.0.2.10:9100
+API_KEY = os.environ.get("API_KEY")  # if set, the POST /print endpoint requires this key in header x-api-key
 MODEL = os.environ.get("MODEL", "QL-1060N")
 LABEL = os.environ.get("LABEL", "102x152")
 
@@ -50,9 +51,17 @@ class PrintRequest(BaseModel):
 async def health():
     return {"status": "ok", "printer_configured": bool(PRINTER)}
 
+def _require_api_key(request: Request):
+    """Dependency to require the API key header if API_KEY is configured."""
+    if not API_KEY:
+        return
+    header_key = request.headers.get("x-api-key")
+    if not header_key or header_key != API_KEY:
+        raise HTTPException(status_code=401, detail="Invalid or missing API key")
+
 
 @app.post("/print")
-async def print_label(req: PrintRequest):
+async def print_label(req: PrintRequest, _=Depends(_require_api_key)):
     if not PRINTER:
         raise HTTPException(status_code=400, detail="PRINTER environment variable is not set")
 
