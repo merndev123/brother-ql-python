@@ -1,0 +1,5 @@
+fastapi>=0.95
+uvicorn[standard]>=0.22
+Pillow>=9.0
+brother-ql
+pydantic>=1.10
